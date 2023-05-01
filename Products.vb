@@ -1,28 +1,31 @@
 ﻿Imports MySql.Data.MySqlClient
+Imports System.IO
+Imports System.Data.OleDb
+Imports System.Globalization
+
 
 Public Class Products
     Private Sub Products_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' Call the method to load data into DataGridView
+
         LoadProductData()
     End Sub
 
     Private Sub LoadProductData()
-        ' Establish MySQL connection
+
         Dim connectionString As String = "server=localhost;user=root;password=july032002;database=restaurant;"
         Dim connection As New MySqlConnection(connectionString)
         connection.Open()
 
-        ' Retrieve data from "product" table
         Dim query As String = "SELECT productId, categoryId, title, description, unitPrice, salePrice FROM product"
         Dim command As New MySqlCommand(query, connection)
         Dim adapter As New MySqlDataAdapter(command)
         Dim dt As New DataTable()
         adapter.Fill(dt)
 
-        ' Bind data to DataGridView
+
         Guna2DataGridView1.DataSource = dt
 
-        ' Close MySQL connection
+
         connection.Close()
     End Sub
 
@@ -63,7 +66,7 @@ Public Class Products
     End Sub
 
     Private Sub Guna2DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles Guna2DataGridView1.CellContentClick
-        ' Example of retrieving data from selected row in DataGridView
+
         If e.RowIndex >= 0 Then
             Dim selectedRow As DataGridViewRow = Guna2DataGridView1.Rows(e.RowIndex)
             Dim productID As Integer = Convert.ToInt32(selectedRow.Cells("productId").Value)
@@ -73,7 +76,7 @@ Public Class Products
             Dim unitPrice As Decimal = Convert.ToDecimal(selectedRow.Cells("unitPrice").Value)
             Dim salePrice As Decimal = Convert.ToDecimal(selectedRow.Cells("salePrice").Value)
 
-            ' Display the retrieved data in MessageBox
+
             MessageBox.Show($"Product ID: {productID}" & vbCrLf &
                             $"Category ID: {categoryID}" & vbCrLf &
                             $"Title: {title}" & vbCrLf &
@@ -89,5 +92,44 @@ Public Class Products
 
     Private Sub Guna2Button2_Click(sender As Object, e As EventArgs) Handles Guna2Button2.Click
 
+    End Sub
+
+    Private Sub Guna2Button7_Click(sender As Object, e As EventArgs) Handles Guna2Button7.Click
+
+        Dim saveFileDialog1 As New SaveFileDialog()
+        saveFileDialog1.Filter = "CSV files (*.csv)|*.csv"
+        saveFileDialog1.Title = "Save as CSV"
+
+
+        If saveFileDialog1.ShowDialog() = DialogResult.OK Then
+            Try
+
+                Using writer As New StreamWriter(saveFileDialog1.FileName)
+                    ' Write the header row
+                    For Each column As DataGridViewColumn In Guna2DataGridView1.Columns
+                        writer.Write(column.HeaderText & ",")
+                    Next
+                    writer.Write(Environment.NewLine)
+
+                    For Each row As DataGridViewRow In Guna2DataGridView1.Rows
+
+                        For Each cell As DataGridViewCell In row.Cells
+
+                            If cell.Value IsNot Nothing AndAlso Not IsDBNull(cell.Value) Then
+                                writer.Write(cell.Value.ToString() & ",")
+                            Else
+                                writer.Write(",")
+                            End If
+                        Next
+
+                        writer.Write(Environment.NewLine)
+                    Next
+
+                    MessageBox.Show("CSV file saved successfully.")
+                End Using
+            Catch ex As Exception
+                MessageBox.Show("Error saving CSV file: " & ex.Message)
+            End Try
+        End If
     End Sub
 End Class

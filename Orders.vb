@@ -1,28 +1,26 @@
 ﻿Imports MySql.Data.MySqlClient
+Imports System.IO
+Imports System.Data.OleDb
+Imports System.Globalization
 
 Public Class Orders
     Private Sub Orders_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' Call the method to load data into DataGridView
         LoadOrderData()
     End Sub
 
     Private Sub LoadOrderData()
-        ' Establish MySQL connection
         Dim connectionString As String = "Server=localhost;Database=restaurant;Uid=root;Pwd=july032002;"
         Dim connection As New MySqlConnection(connectionString)
         connection.Open()
 
-        ' Retrieve data from "orders" table with backticks around table name
         Dim query As String = "SELECT * FROM `order`"
         Dim command As New MySqlCommand(query, connection)
         Dim adapter As New MySqlDataAdapter(command)
         Dim dt As New DataTable()
         adapter.Fill(dt)
 
-        ' Bind data to DataGridView
         Guna2DataGridView1.DataSource = dt
 
-        ' Close MySQL connection
         connection.Close()
     End Sub
 
@@ -52,7 +50,7 @@ Public Class Orders
     End Sub
 
     Private Sub Label11_Click(sender As Object, e As EventArgs) Handles Label11.Click
-        ' Do nothing, as the user is already on the Orders page
+
     End Sub
 
     Private Sub Label12_Click(sender As Object, e As EventArgs) Handles Label12.Click
@@ -62,7 +60,7 @@ Public Class Orders
     End Sub
 
     Private Sub Guna2DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles Guna2DataGridView1.CellContentClick
-        ' Example of retrieving data from selected row in DataGridView
+
         If e.RowIndex >= 0 Then
             Dim selectedRow As DataGridViewRow = Guna2DataGridView1.Rows(e.RowIndex)
             Dim orderID As Integer = Convert.ToInt32(selectedRow.Cells("orderId").Value)
@@ -72,13 +70,53 @@ Public Class Orders
             Dim address As String = selectedRow.Cells("address").Value.ToString()
             Dim orderAmount As Double = Convert.ToDouble(selectedRow.Cells("orderAmount").Value)
 
-            ' Display the retrieved data in MessageBox
+
             MessageBox.Show($"Order ID: {orderID}" & vbCrLf &
                             $"User ID: {userID}" & vbCrLf &
                             $"Email: {email}" & vbCrLf &
                             $"Phone: {phone}" & vbCrLf &
                             $"Address: {address}" & vbCrLf &
                             $"Order Amount: {orderAmount}")
+        End If
+    End Sub
+
+    Private Sub Guna2Button3_Click(sender As Object, e As EventArgs) Handles Guna2Button3.Click
+
+        Dim saveFileDialog1 As New SaveFileDialog()
+        saveFileDialog1.Filter = "CSV files (*.csv)|*.csv"
+        saveFileDialog1.Title = "Save as CSV"
+
+        If saveFileDialog1.ShowDialog() = DialogResult.OK Then
+            Try
+
+                Using writer As New StreamWriter(saveFileDialog1.FileName)
+
+                    For Each column As DataGridViewColumn In Guna2DataGridView1.Columns
+                        writer.Write(column.HeaderText & ",")
+                    Next
+                    writer.Write(Environment.NewLine)
+
+                    For Each row As DataGridViewRow In Guna2DataGridView1.Rows
+
+                        For Each cell As DataGridViewCell In row.Cells
+
+                            If cell.Value IsNot Nothing AndAlso Not IsDBNull(cell.Value) Then
+                                writer.Write(cell.Value.ToString() & ",")
+                            Else
+                                writer.Write(",")
+                            End If
+                        Next
+
+
+                        writer.Write(Environment.NewLine)
+                    Next
+
+
+                    MessageBox.Show("CSV file saved successfully.")
+                End Using
+            Catch ex As Exception
+                MessageBox.Show("Error saving CSV file: " & ex.Message)
+            End Try
         End If
     End Sub
 End Class

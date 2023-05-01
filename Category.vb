@@ -209,4 +209,46 @@ Public Class Category
     Private Sub Guna2Button5_Click(sender As Object, e As EventArgs)
 
     End Sub
+
+    Private Sub Guna2Button5_Click_1(sender As Object, e As EventArgs) Handles Guna2Button5.Click
+
+        Dim saveFileDialog1 As New SaveFileDialog()
+        saveFileDialog1.Filter = "CSV files (*.csv)|*.csv"
+        saveFileDialog1.Title = "Save as CSV"
+
+
+        If saveFileDialog1.ShowDialog() = DialogResult.OK Then
+            Try
+
+                Using writer As New StreamWriter(saveFileDialog1.FileName)
+
+                    For Each column As DataGridViewColumn In Guna2DataGridView1.Columns
+                        writer.Write(column.HeaderText & ",")
+                    Next
+                    writer.Write(Environment.NewLine)
+
+
+                    For Each row As DataGridViewRow In Guna2DataGridView1.Rows
+
+                        For Each cell As DataGridViewCell In row.Cells
+
+                            If cell.Value IsNot Nothing AndAlso Not IsDBNull(cell.Value) Then
+                                writer.Write(cell.Value.ToString() & ",")
+                            Else
+                                writer.Write(",")
+                            End If
+                        Next
+
+
+                        writer.Write(Environment.NewLine)
+                    Next
+
+                    MessageBox.Show("CSV file saved successfully.")
+                End Using
+            Catch ex As Exception
+                MessageBox.Show("Error saving CSV file: " & ex.Message)
+            End Try
+        End If
+    End Sub
+
 End Class
